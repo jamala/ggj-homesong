@@ -125,7 +125,7 @@ function setvol(sfx, vol)
   	note=peek(note_addr)
   	if note>0 then
     note_altered=bor(band(note,241),shl(vol,1))
-    poke(note_addr,ndte_altered)
+    poke(note_addr,note_altered)
   	end
   end
 end
