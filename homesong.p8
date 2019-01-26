@@ -27,16 +27,16 @@ function _update()
  	singing = true
  	
  	if btn(0) then
- 		sfx(0,0)
+ 		sfx(0,3)
  	end
  	if btn(1) then
- 		sfx(1,0)
+ 		sfx(1,3)
  	end
  	if btn(2) then
- 		sfx(2,0)
+ 		sfx(2,3)
  	end
  	if btn(3) then
- 		sfx(3,0)
+ 		sfx(3,3)
  	end
  	
 		songs()
