@@ -4,7 +4,7 @@ __lua__
 
 function _init()
 	singing = false
-	vol_low = false
+	vollow = false
 	songlist =
 	{
  	{0,1,2,3},
