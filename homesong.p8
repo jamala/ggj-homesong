@@ -1,11 +1,13 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
+max_stress=3040
 
 function _init()
  inside = true
 	singing = false
 	vollow = false
+	stress = 0
 	songlist =
 	{
  	{0,1,2,3},
@@ -55,9 +57,16 @@ function _update()
 		notes = {}
 		match = nil
 		move_player()
-		
 	end
 	
+	if inside then
+	 stress = max(0, stress-10)
+	else
+	 stress += 1
+	 if stress == (max_stress/2) then
+	  play_outside(46)
+	 end
+	end
 end
 
 function move_player()
@@ -107,17 +116,27 @@ end
 function _draw()
  cls()
  camera()
- 
-  rectfill(0,0,40,10)
- 
+
  if inside then
   map(0,0,0,0,14,14)
  else
   camera(player.x-64,player.y-64)
   map(16,1,0,0,100,100)
  end
-
-
+ 
+ camera()
+ 
+ rectfill(80,0,126,4,2)
+ rectfill(80,0,(80+((stress/max_stress)*(126-80))),4,12)
+ rect(80,0,126,4,12)
+ 
+ -- this is jank, sorry -ng
+ if not inside then
+  camera(player.x-64,player.y-64)
+ end
+ 
+ 
+ 
  print ("matching song: ",0,40,10)
  print (match,60,40,10)
  for i = 1,#notes do
@@ -233,7 +252,7 @@ end
 
 function play_outside(speed)
  music(-1)
- for s=4,7 do
+ for s=4,8 do
  	set_speed(s,speed)
  end
  music(0)
