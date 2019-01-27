@@ -24,7 +24,11 @@ end
 -- 2 = up
 
 talk_song={3,0,1,3,0,1}
+
 tree_song={0,2,1,0,1,0,3}
+color_song={2,3,2,3}
+
+
 
 function _init()
  inside = true
@@ -60,7 +64,16 @@ function _init()
 	 		 mset(x,40,43)
 	 		end
 	  end
-	 }
+	 }	
+	,{["sprites"]={30,31}
+	 ,["song"]=color_song
+	 ,["return_song"]=14
+	 ,["return_dur"]=40
+	 ,["effect"]=function()
+	 		change_treecol()
+	   end
+	 	}	
+	
 	}
 	
 	songs()
@@ -75,8 +88,8 @@ function _init()
 	
 	topsprites = 
 	{
-	 {14,63*8,31*8},
-	 {15,63*8,28*8}
+	 {14,63*8,31*8,nil},
+	 {15,63*8,28*8,nil}
 	}
 	asprites = {}
 	init_animations()
@@ -294,12 +307,38 @@ end
 function draw_topsprites()
 
 	for t=1, #topsprites do
+		pal()
+	 if topsprites[t][4] then
+	 	pal(topsprites[t][4][1],topsprites[t][4][2])
+	 end
+
 		spr(topsprites[t][1],
 					 topsprites[t][2],
 					 topsprites[t][3])		
+		pal()
 	end	
+	
 
 end
+
+function change_treecol()
+
+	for t = 1, #topsprites do
+		local tr = topsprites[t]
+		if (tr[1] ==14)
+				and (
+				(tr[2] < player.x+20) and
+				(tr[2] > player.x-20))
+			 and (
+				(tr[3] < player.y+20) and
+				(tr[3] > player.y-20)) then
+			tr[4] = {3,flr(rnd(16))}
+				end
+					
+			end
+
+end
+
 
 
 -->8
