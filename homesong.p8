@@ -65,14 +65,6 @@ function _init()
 	 		end
 	  end
 	 }	
-	,{["sprites"]={30,31}
-	 ,["song"]=color_song
-	 ,["return_song"]=14
-	 ,["return_dur"]=40
-	 ,["effect"]=function()
-	 		change_treecol()
-	   end
-	 	}	
 	
 	}
 	
