@@ -262,8 +262,8 @@ function draw_topsprites()
 
 	for t=1, #topsprites do
 		spr(topsprites[t][1],
-					 topsprites[t][2]+player.vx,
-					 topsprites[t][3]+player.vy)		
+					 topsprites[t][2],
+					 topsprites[t][3])		
 	end	
 
 end
