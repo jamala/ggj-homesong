@@ -3,17 +3,36 @@ version 16
 __lua__
 max_stress=5000
 
+-- to program future effects,
+-- set a value in effects_table
+-- where the key is the number of cycles
+-- after which the effect should take place
+-- and the val is a function effect
+-- see play_song() for example
+effects_started=false
+effects_timer=0
+effects_table={}
+
 function _init()
  inside = true
 	singing = false
+	other_singing = false
+	voloff = false
 	vollow = false
 	stress = 0
+	
+	notes={}
+	
+	-- {sprites}, {song}
 	songlist =
-	{
- 	{0,1,2,3},
- 	{0,0,0,0}
+		--tree song
+	{{["sprites"]={30,31}
+	 ,["song"]={3,0,1,3,0,1}
+	 ,["return_song"]=13
+	 }
 	}
-	match = nil
+	
+	songs()
 
 	world = {}
 	maplocked = true
@@ -31,13 +50,23 @@ function _init()
 end
 
 function _update()
-	if singing and not vollow then
-		musiclow()
-		vollow=true
-	elseif not singing and vollow then
-		musichigh()
-		vollow=false
-	end
+ if effects_started then
+  effects_timer += 1
+ end
+ 
+ if effects_table[effects_timer] then
+  effects_table[effects_timer]()
+ end
+ 
+	if not voloff then
+ 	if singing and not vollow then
+ 		musiclow()
+ 		vollow=true
+ 	elseif not singing and vollow then
+ 		musichigh()
+ 		vollow=false
+ 	end
+ end
 	
 	if btn(4) then
  	singing = true
@@ -55,7 +84,7 @@ function _update()
  		sfx(0,3)
  	end
  	
-		songs()
+ 	if not other_singing then songs() end
 		playerspr.frame = 1
 	else
 		singing = false
@@ -64,8 +93,7 @@ function _update()
 		move_player()
 	end
 
-	updatesing()
-
+ updatesing()
 	
 	if inside then
 	 stress = max(0, stress-10)
@@ -73,10 +101,13 @@ function _update()
 	 stress += 1
 	 if stress == (max_stress/2) then
 	  play_outside(46)
+	 elseif stress == (3*max_stress/4) then
+	  play_outside(28)
 	 end
 	end
 
 end
+
 
 function move_player()
 	player.vx = 0
@@ -147,11 +178,9 @@ function _draw()
  
  
  
- print ("matching song: ",0,40,10)
- print (match,60,40,10)
- for i = 1,#notes do
- 	print(notes[i], 0, 40+10*i, 12)
- end
+ --for i = 1,#notes do
+ 	--print(notes[i], 0, 40+10*i, 12)
+ --end
 
  --draw player
  
@@ -294,24 +323,71 @@ function songs()
 		end
 	end
 	
-	//compare to songs
-	// (matching song id
-	//  stored in 'match')
-	for i = 1, #songlist do 
-		local m = true
-		local c = 0
-		if #notes > 0 then
-  	for j = 1, #notes do
-  	 c+=1
-  		if notes[j] != songlist[i][j] then
-  			m = false
-  		end 
- 	 end
-		if m and c == #songlist[i] then 
-			match = i
-		end
+	inter = get_interactible()
+	song_table = nil
+
+	for table in all(songlist) do 
+		song_sprites = table["sprites"]
+
+		for sprite in all(song_sprites) do
+			if sprite == inter then
+			 song_table=table
+			end
 		end
 	end
+	
+	match=false
+	if song_table then
+	 local song = song_table["song"]
+	 match=true
+	
+	 for i=1,#song do
+	  match = notes[i] == song[i]
+ 	end
+ 	if match then
+
+ 	 play_song(song_table["return_song"])
+ 	end
+ end
+end
+
+function play_song(song)
+ musicoff()
+ other_singing=true
+ effects_started=true
+ 
+ effects_table[20] =
+  function() sfx(song) end
+  
+ effects_table[270] =
+  function()
+   musichigh()
+   other_singing=false
+   effects_started=false
+  end  
+end
+
+function get_interactible()
+ tiles = 
+ {mget((player.x+4)/8,(player.y+4)/8)
+	,mget((player.x+4)/8,(player.y+20)/8)
+	,mget((player.x-4)/8,(player.y+4)/8)
+	,mget((player.x-4)/8,(player.y+12)/8)
+	,mget((player.x+12)/8,(player.y+4)/8)
+	,mget((player.x+12)/8,(player.y+12)/8)
+ }
+ 
+ inter = nil
+ for i=1,#tiles do
+  if is_inter(tiles[i]) then
+   inter = tiles[i]
+  end
+ end
+ return inter
+end
+
+function is_inter(tile)
+ return band(2,fget(tile)) == 2
 end
 
 function get_speed(sfx)
@@ -351,6 +427,8 @@ function play_inside(speed)
 end
 
 function musiclow()
+	vollow=true
+	voloff=false
  setvol(4,1)
  setvol(5,1)
  setvol(6,1)
@@ -361,7 +439,22 @@ function musiclow()
  setvol(11,1)
 end
 
+function musicoff()
+	vollow=false
+	voloff=true
+ setvol(4,0)
+ setvol(5,0)
+ setvol(6,0)
+ setvol(7,0)
+ setvol(8,0)
+ setvol(9,0)
+ setvol(10,0)
+ setvol(11,0)
+end
+
 function musichigh()
+	vollow=false
+	voloff=false
  setvol(4,5)
  setvol(5,3)
  setvol(6,3)
@@ -592,7 +685,7 @@ d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d100000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d100d100d100
 0000000000d1d1d1d1d1d1d1d1d1d1d1d1d100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0100000000000000000000000000020200000000000000000000000000010101000000000000000000000000000200000000000000000000000000000002000000000101000101014001010000000000000001010101010101010100000000000000010101010101000000000000808000000000010101010000000000008080
+0100000000000000000000000000020200000000000000000000000000010303000000000000000000000000000200000000000000000000000000000002000000000101000101014001010000000000000001010101010101010100000000000000010101010101000000000000808000000000010101010000000000008080
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 4747474700474747474747474747470000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -641,7 +734,7 @@ __sfx__
 0140000019720197201d7201d7201b7201b720147201472019720197201d7201d7201b7201b720147201472019720197201d7201d7201b7201b720207202072019720197201d7201d7201b7201b7201472014720
 0140000019575000001d575000001b57500000145750000019575005001d575000001b57500000145750000019575005001d575000001b57500000205750000019575005001d575000001b575000001457500000
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-010800000000000000000000000000000000000000000000000000000035450000003f45000000000000000000000164501b45022450284503545000000000000000000000000000000000000000000000000000
+012000000d7740d7710d7710d77114771147711477114771127711277112771127711477114771147711477112771127711277112771117711177111771117710d7710d7710d7710d7710d7710d7710d7710d775
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
