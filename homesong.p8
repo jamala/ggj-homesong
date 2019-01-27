@@ -80,6 +80,9 @@ function _init()
 	}
 	asprites = {}
 	init_animations()
+
+	leafpal = {3,11,14}
+	leafcolor = 3
 end
 
 function _update()
@@ -249,6 +252,7 @@ function go_outside()
  play_outside(64)
  player.x=528
  player.y=245
+ paint_trees()
 end
 
 function isblocked(x,y)
@@ -293,12 +297,19 @@ end
 
 function draw_topsprites()
 
+	pal(3,leafcolor)
 	for t=1, #topsprites do
 		spr(topsprites[t][1],
 					 topsprites[t][2],
 					 topsprites[t][3])		
 	end	
 
+	pal()
+
+end
+
+function paint_trees()
+	leafcolor = leafpal[flr(rnd(#leafpal)) + 1]
 end
 
 
